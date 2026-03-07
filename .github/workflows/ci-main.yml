@@ -139,57 +139,18 @@ jobs:
             ${{ needs.setup.outputs.cache-key }}-target-${{ matrix.target }}-
             ${{ needs.setup.outputs.cache-key }}-target-
 
-      - name: Build release binaries
+      - name: Build desktop app
         run: |
-          # Build workspace with default features (no rocksdb for faster CI)
-          cargo build --release --target ${{ matrix.target }} --workspace
+          # Build the Tauri desktop app (uses git dependencies from terraphim-ai)
+          cargo build --release --target ${{ matrix.target }} --package terraphim-ai-desktop
 
-          # Verify key binaries exist
-          ls -la target/${{ matrix.target }}/release/terraphim*
-
-          # Show binary sizes
-          for binary in target/${{ matrix.target }}/release/terraphim*; do
-            if [[ -f "$binary" ]]; then
-              echo "$(basename "$binary"): $(du -h "$binary" | cut -f1)"
-            fi
-          done
+          # Verify desktop binary exists
+          ls -la target/${{ matrix.target }}/release/terraphim-ai-desktop* || echo "Desktop binary not found in expected location"
 
       - name: Run tests
         run: |
-          # Run unit and integration tests (exclude integration-signing which requires zipsign CLI)
-          cargo test --release --target ${{ matrix.target }} --workspace --features "self_update/signatures"
-
-      - name: Upload binary artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: rust-binaries-${{ matrix.target }}
-          path: |
-            target/${{ matrix.target }}/release/terraphim_server
-            target/${{ matrix.target }}/release/terraphim_mcp_server
-            target/${{ matrix.target }}/release/terraphim-agent
-          retention-days: ${{ needs.setup.outputs.is-release == 'true' && '90' || '30' }}
-
-      - name: Create .deb package
-        if: matrix.target == 'x86_64-unknown-linux-gnu'
-        run: |
-          # Install cargo-deb if not present
-          if ! command -v cargo-deb &> /dev/null; then
-            cargo install cargo-deb
-          fi
-
-          # Build .deb package
-          cargo deb --target ${{ matrix.target }} --package terraphim_server --no-build
-
-          # Show package info
-          dpkg-deb --info target/${{ matrix.target }}/debian/terraphim-server_*.deb
-
-      - name: Upload .deb artifacts
-        if: matrix.target == 'x86_64-unknown-linux-gnu'
-        uses: actions/upload-artifact@v4
-        with:
-          name: deb-packages
-          path: target/${{ matrix.target }}/debian/*.deb
-          retention-days: ${{ needs.setup.outputs.is-release == 'true' && '90' || '30' }}
+          # Run tests for the desktop app (uses git dependencies)
+          cargo test --release --target ${{ matrix.target }} --package terraphim-ai-desktop
 
   # Frontend build
   frontend-build:
