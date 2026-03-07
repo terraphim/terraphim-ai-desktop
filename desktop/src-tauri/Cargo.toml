@@ -23,17 +23,20 @@ path = "src/bin/generate-bindings.rs"
 tauri-build = { version = "1.5.5", features = [] }
 
 [dependencies]
-terraphim_automata = { path = "../../crates/terraphim_automata", version = "1.0.0", features = ["typescript"] }
-terraphim_atomic_client = { path = "../../crates/terraphim_atomic_client", version = "1.0.0", features = ["native"], optional = true }
-terraphim_config = { path = "../../crates/terraphim_config", version = "1.0.0", features = ["typescript"] }
-terraphim_middleware = { path = "../../crates/terraphim_middleware", version = "1.0.0" }
-terraphim_rolegraph = { path = "../../crates/terraphim_rolegraph", version = "1.0.0" }
-terraphim_settings = { path = "../../crates/terraphim_settings", version = "1.0.0", features = ["onepassword"] }
-terraphim_onepassword_cli = { path = "../../crates/terraphim_onepassword_cli", version = "1.0.0" }
-terraphim_types = { path = "../../crates/terraphim_types", version = "1.0.0", features = ["typescript"] }
-terraphim_persistence = { path = "../../crates/terraphim_persistence", version = "1.0.0" }
-terraphim_service = { path = "../../crates/terraphim_service", version = "1.0.0" }
-terraphim_mcp_server = { path = "../../crates/terraphim_mcp_server", version = "1.0.0" }
+# Force consistent regex version across all git dependencies
+regex = "^1.12.3"
+
+terraphim_automata = { git = "https://github.com/terraphim/terraphim-ai.git", branch = "main", features = ["typescript"] }
+terraphim_atomic_client = { git = "https://github.com/terraphim/terraphim-ai.git", branch = "main", features = ["native"], optional = true }
+terraphim_config = { git = "https://github.com/terraphim/terraphim-ai.git", branch = "main", features = ["typescript"] }
+terraphim_middleware = { git = "https://github.com/terraphim/terraphim-ai.git", branch = "main" }
+terraphim_rolegraph = { git = "https://github.com/terraphim/terraphim-ai.git", branch = "main" }
+terraphim_settings = { git = "https://github.com/terraphim/terraphim-ai.git", branch = "main", features = ["onepassword"] }
+terraphim_onepassword_cli = { git = "https://github.com/terraphim/terraphim-ai.git", branch = "main" }
+terraphim_types = { git = "https://github.com/terraphim/terraphim-ai.git", branch = "main", features = ["typescript"] }
+terraphim_persistence = { git = "https://github.com/terraphim/terraphim-ai.git", branch = "main" }
+terraphim_service = { git = "https://github.com/terraphim/terraphim-ai.git", branch = "main" }
+terraphim_mcp_server = { git = "https://github.com/terraphim/terraphim-ai.git", branch = "main" }
 rmcp = { version = "0.9.0", features = ["server"] }
 serde_json_any_key = "2.0.0"
 anyhow = "1.0.81"
