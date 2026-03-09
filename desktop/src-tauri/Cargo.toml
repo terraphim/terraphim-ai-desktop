@@ -20,7 +20,7 @@ name = "generate-bindings"
 path = "src/bin/generate-bindings.rs"
 
 [build-dependencies]
-tauri-build = { version = "1.5.5", features = [] }
+tauri-build = { version = "2.2.0", features = [] }
 
 [dependencies]
 # Force consistent regex version across all git dependencies
