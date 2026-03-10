@@ -2,15 +2,15 @@
 import { invoke } from '@tauri-apps/api/tauri';
 import { get } from 'svelte/store';
 // import { JSONEditor } from 'svelte-jsoneditor'; // Removed - using textarea instead
-// @ts-expect-error local store defined elsewhere
 import { configStore, is_tauri } from '$lib/stores';
 import { CONFIG } from '../config';
+import type { Config } from './generated/types';
 
 let _content = $state({
 	json: $configStore,
 });
 
-function _handleChange(updatedContent) {
+function _handleChange(updatedContent: { json: Config }) {
 	console.log('contents changed:', updatedContent);
 	console.log('is tauri', $is_tauri);
 	configStore.update((config) => {

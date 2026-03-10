@@ -76,8 +76,7 @@ export const SlashCommand = Extension.create<SlashCommandOptions>({
 	},
 
 	addProseMirrorPlugins() {
-		const suggestion: Partial<SuggestionOptions> = {
-			editor: this.editor,
+		const suggestion: Omit<SuggestionOptions<CommandItem>, 'editor'> = {
 			char: this.options.trigger,
 			pluginKey: this.options.pluginKey,
 			allowSpaces: true,
@@ -147,7 +146,7 @@ export const SlashCommand = Extension.create<SlashCommandOptions>({
 			},
 		};
 
-		return [Suggestion(suggestion)];
+		return [Suggestion<CommandItem>({ editor: this.editor, ...suggestion })];
 	},
 });
 

@@ -1,7 +1,6 @@
 <script lang="ts">
 import { invoke } from '@tauri-apps/api/tauri';
 import { Modal } from 'svelma';
-// @ts-expect-error
 import SvelteMarkdown from 'svelte-markdown';
 import { is_tauri, role } from '$lib/stores';
 import { CONFIG } from '../../config';
@@ -104,10 +103,10 @@ async function handleKgClick(term: string) {
 			// Use Tauri command for desktop app
 			console.log('  Making Tauri invoke call...');
 			console.log('  Tauri command: find_documents_for_kg_term');
-			console.log('  Tauri params:', { roleName: $role, term: term });
+			console.log('  Tauri params:', { role_name: $role, term: term });
 
 			const response: DocumentListResponse = await invoke('find_documents_for_kg_term', {
-				roleName: $role,
+				role_name: $role,
 				term: term,
 			});
 
@@ -259,7 +258,7 @@ function _handleKeyDown(event: KeyboardEvent) {
 </script>
 
 <Modal bind:active>
-  <div class="box wrapper">
+  <div class="box wrapper" data-testid="article-modal">
     <!-- Close button following Bulma styling -->
     <button class="delete is-large modal-close-btn" on:click={() => active = false} aria-label="close"></button>
 
@@ -280,16 +279,17 @@ function _handleKeyDown(event: KeyboardEvent) {
       <!-- Pass the article body as default content and bind back for updates -->
       <NovelWrapper bind:html={item.body} outputFormat={isHtml ? 'html' : 'markdown'} />
       <div class="edit-controls">
-        <button class="button is-primary" on:click={saveDocument}>
+        <button class="button is-primary" data-testid="article-save-button" on:click={saveDocument}>
           Save
         </button>
-        <button class="button is-light" on:click={() => editing = false}>
+        <button class="button is-light" data-testid="article-cancel-button" on:click={() => editing = false}>
           Cancel
         </button>
       </div>
     {:else}
       <div
         class="content-viewer"
+        data-testid="article-content-viewer"
         bind:this={contentElement}
         on:dblclick={_handleDoubleClick}
         on:keydown={_handleKeyDown}

@@ -1,6 +1,7 @@
 <script lang="ts">
 import { Editor } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
+import { onDestroy, onMount } from 'svelte';
 import { Markdown } from 'tiptap-markdown';
 import { is_tauri, role } from '$lib/stores';
 import { novelAutocompleteService } from '../services/novelAutocompleteService';
@@ -14,7 +15,7 @@ let {
 	outputFormat = 'html' as 'html' | 'markdown',
 	enableAutocomplete = true,
 	showSnippets = true,
-	suggestionTrigger = '++',
+	suggestionTrigger = '@',
 	maxSuggestions = 8,
 	minQueryLength = 1,
 	debounceDelay = 300,
@@ -30,14 +31,11 @@ let editorInstance: Editor | null = $state(null);
 let editorElement: HTMLDivElement | null = $state(null);
 let isInitializing = $state(false);
 
-// Svelte 5: Replace onMount/onDestroy with $effect for initialization and cleanup
-$effect(() => {
-	// Initialize autocomplete if enabled
+onMount(() => {
 	if (enableAutocomplete) {
-		initializeAutocomplete();
+		void initializeAutocomplete();
 	}
 
-	// Inject CSS styles for suggestions
 	if (typeof document !== 'undefined') {
 		const style = document.createElement('style');
 		style.textContent = `${terraphimSuggestionStyles}\n${slashCommandStyles}`;
@@ -45,10 +43,9 @@ $effect(() => {
 		styleElement = style;
 	}
 
-	// Initialize TipTap editor
-	if (typeof document !== 'undefined' && editorElement) {
+	if (editorElement) {
 		const instance = new Editor({
-			element: editorElement as HTMLElement,
+			element: editorElement,
 			extensions: [
 				StarterKit,
 				Markdown.configure({ html: true }),
@@ -76,17 +73,16 @@ $effect(() => {
 		editorInstance = instance;
 		editor = instance as unknown;
 	}
+});
 
-	// Cleanup function (replaces onDestroy)
-	return () => {
-		if (styleElement?.parentNode) {
-			styleElement.parentNode.removeChild(styleElement);
-		}
-		if (editorInstance) {
-			editorInstance.destroy();
-			editorInstance = null;
-		}
-	};
+onDestroy(() => {
+	if (styleElement?.parentNode) {
+		styleElement.parentNode.removeChild(styleElement);
+	}
+	if (editorInstance) {
+		editorInstance.destroy();
+		editorInstance = null;
+	}
 });
 
 // Svelte 5: Replace reactive statement with $effect for role changes
@@ -266,7 +262,7 @@ Start typing below:`;
 };
 </script>
 
-<div class="novel-editor" bind:this={editorElement}></div>
+<div class="novel-editor" data-testid="novel-editor" bind:this={editorElement}></div>
 
 <!-- Autocomplete Status and Controls -->
 {#if enableAutocomplete}
@@ -321,7 +317,10 @@ Start typing below:`;
       </div>
     </div>
 
-    <div style="font-size: 13px; color: #6c757d; margin-bottom: 8px; font-family: monospace;">
+    <div
+      style="font-size: 13px; color: #6c757d; margin-bottom: 8px; font-family: monospace;"
+      data-testid="autocomplete-status"
+    >
       {_autocompleteStatus}
     </div>
 
@@ -340,9 +339,9 @@ Start typing below:`;
       <strong>Configuration:</strong>
       <br>• <strong>Backend:</strong> {$is_tauri ? 'Tauri (native)' : `MCP Server (${novelAutocompleteService.getStatus().baseUrl})`}
       <br>• <strong>Role:</strong> {$role}
-      <br>• <strong>Trigger:</strong> "{suggestionTrigger}" + text
+      <br>• <strong>Trigger:</strong> <span data-testid="autocomplete-trigger">"{suggestionTrigger}" + text</span>
       <br>• <strong>Min Length:</strong> {minQueryLength} character{minQueryLength !== 1 ? 's' : ''}
-      <br>• <strong>Max Results:</strong> {maxSuggestions}
+      <br>• <strong>Max Results:</strong> <span data-testid="autocomplete-max-results">{maxSuggestions}</span>
       <br>• <strong>Debounce:</strong> {debounceDelay}ms
       <br>• <strong>Snippets:</strong> {showSnippets ? 'Enabled' : 'Disabled'}
     </div>

@@ -14,5 +14,18 @@
 		}
 	},
 	"include": ["src/**/*.d.ts", "src/**/*.ts", "src/**/*.js", "src/**/*.svelte"],
+	"exclude": [
+		"src/**/*.test.*",
+		"src/**/__tests__/**",
+		"src/lib/StartupScreen.svelte",
+		"src/lib/Shortcuts.svelte",
+		"src/lib/Cli.svelte",
+		"src/lib/Communication.svelte",
+		"src/lib/Fetchers/**",
+		"src/workers/**",
+		"src/svelte-shim.js",
+		"src/scratchpad.ts",
+		"src/__test-utils__/**"
+	],
 	"references": [{ "path": "./tsconfig.node.json" }]
 }

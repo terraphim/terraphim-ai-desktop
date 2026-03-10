@@ -4,9 +4,10 @@ import * as d3 from 'd3';
 import type { RoleGraphResponse } from './generated/types';
 import ArticleModal from './Search/ArticleModal.svelte';
 import type { Document } from './Search/SearchResult';
+import { CONFIG } from '../config';
 import { is_tauri, role } from './stores';
 
-let { apiUrl = '/rolegraph', fullscreen = true }: { apiUrl?: string; fullscreen?: boolean } =
+let { apiUrl = `${CONFIG.ServerURL}/rolegraph`, fullscreen = true }: { apiUrl?: string; fullscreen?: boolean } =
 	$props();
 
 let container = $state<HTMLDivElement>();
@@ -56,7 +57,7 @@ async function fetchGraph() {
 			edges = data.edges;
 		}
 	} catch (e) {
-		error = e.message;
+		error = e instanceof Error ? e.message : 'Unknown rolegraph error';
 		console.error('Error fetching rolegraph:', e);
 	} finally {
 		loading = false;
@@ -73,6 +74,8 @@ function nodeToDocument(node: any): Document {
 		tags: ['knowledge-graph', 'concept'],
 		rank: node.rank,
 		stub: `Knowledge graph concept: ${node.label}`,
+		summarization: '',
+		source_haystack: 'knowledge-graph',
 	};
 }
 
@@ -88,14 +91,14 @@ function handleNodeRightClick(event: any, nodeData: any) {
 	event.preventDefault();
 	event.stopPropagation();
 	console.log('Node right-clicked:', nodeData.label);
-	_debugMessage = `Right-clicked: ${nodeData.label}`;
+	debugMessage = `Right-clicked: ${nodeData.label}`;
 	selectedNode = nodeToDocument(nodeData);
 	_startInEditMode = true;
 	_showModal = true;
 
 	// Clear debug message after 2 seconds
 	setTimeout(() => {
-		_debugMessage = '';
+		debugMessage = '';
 	}, 2000);
 }
 
@@ -145,7 +148,7 @@ function renderGraph() {
 			g.attr('transform', event.transform);
 		});
 
-	svg.call(zoom);
+	svg.call(zoom as any);
 
 	const g = svg.append('g');
 
@@ -223,7 +226,7 @@ function renderGraph() {
 					return Math.max(6, Math.min(20, rank * 2));
 				});
 		})
-		.call(d3.drag().on('start', dragstarted).on('drag', dragged).on('end', dragended));
+		.call(d3.drag().on('start', dragstarted).on('drag', dragged).on('end', dragended) as any);
 
 	// Node labels
 	const label = g
@@ -355,8 +358,6 @@ $effect(() => {
       bind:active={_showModal}
       item={selectedNode}
       initialEdit={_startInEditMode}
-      on:close={handleModalClose}
-      on:save={handleModalSave}
     />
   {/key}
 {/if}

@@ -3,7 +3,8 @@ import { listen } from '@tauri-apps/api/event';
 import { invoke } from '@tauri-apps/api/tauri';
 import { CONFIG } from '../config';
 import type { Role as RoleInterface } from './generated/types';
-import { configStore, is_tauri, role, roles, theme, typeahead } from './stores';
+import { detectTauriRuntime } from './runtime';
+import { configStore, is_tauri, role, roles, theme, thesaurus, typeahead } from './stores';
 
 interface ConfigResponse {
 	status: string;
@@ -18,7 +19,7 @@ interface ConfigResponse {
 let configURL = '';
 export async function loadConfig() {
 	try {
-		is_tauri.set(window.__TAURI__ !== undefined);
+		is_tauri.set(detectTauriRuntime());
 		if ($is_tauri) {
 			console.log('Loading config from Tauri');
 			invoke<ConfigResponse>('get_config')
@@ -87,18 +88,61 @@ function updateStoresFromConfig(config: ConfigResponse['config']) {
 				Boolean(ap?.Local && String(ap.Local).length > 0) ||
 				Boolean(ap?.Remote && String(ap.Remote).length > 0);
 			typeahead.set(Boolean(hasLocal || hasAutomata));
+			void syncThesaurusForRole(roleName, Boolean(hasLocal || hasAutomata));
 		} catch {
 			typeahead.set(false);
+			thesaurus.set({});
 		}
 	}
+}
+
+async function syncThesaurusForRole(roleName: string, enabled: boolean) {
+	if (!enabled || !roleName) {
+		thesaurus.set({});
+		return;
+	}
+
+	try {
+		if ($is_tauri) {
+			const data = (await invoke('publish_thesaurus', { roleName })) as Record<string, any>;
+			thesaurus.set(normalizeThesaurus(data));
+			return;
+		}
+
+		const response = await fetch(`${CONFIG.ServerURL}/thesaurus/${encodeURIComponent(roleName)}`);
+		if (!response.ok) {
+			throw new Error(`HTTP ${response.status}`);
+		}
+
+		const data = await response.json();
+		thesaurus.set(normalizeThesaurus(data?.thesaurus ?? {}));
+	} catch (error) {
+		console.error(`Error loading thesaurus for role ${roleName}:`, error);
+		thesaurus.set({});
+	}
+}
+
+function normalizeThesaurus(
+	data: Record<string, any> | null | undefined
+): Record<string, string> {
+	if (!data || typeof data !== 'object') {
+		return {};
+	}
+
+	return Object.fromEntries(
+		Object.entries(data).map(([key, value]) => [
+			key,
+			typeof value === 'string' ? value : value?.value || value?.term || String(value ?? ''),
+		])
+	);
 }
 
 export async function saveConfig(config: any) {
 	try {
 		if ($is_tauri) {
 			console.log('Saving config to Tauri');
-			const response = await invoke('save_config', { config });
-			console.log('save_config response', response);
+			const response = await invoke('update_config', { configNew: config });
+			console.log('update_config response', response);
 			return response;
 		} else {
 			console.log('Saving config to REST API');
@@ -122,11 +166,6 @@ export async function saveConfig(config: any) {
 // Theme switching functionality
 export function switchTheme(newTheme: string) {
 	theme.set(newTheme);
-	if ($is_tauri) {
-		invoke('set_theme', { theme: newTheme }).catch((err) =>
-			console.error('Error setting theme:', err)
-		);
-	}
 	// For web mode, theme is handled by CSS variables
 }
 
@@ -184,8 +223,10 @@ function updateRole(event: Event) {
 			Boolean(ap?.Local && String(ap.Local).length > 0) ||
 			Boolean(ap?.Remote && String(ap.Remote).length > 0);
 		typeahead.set(Boolean(hasLocal || hasAutomata));
+		void syncThesaurusForRole(newRoleName, Boolean(hasLocal || hasAutomata));
 	} catch {
 		typeahead.set(false);
+		thesaurus.set({});
 	}
 
 	// Update selected role in config
@@ -200,11 +241,10 @@ function updateRole(event: Event) {
 			console.error('Error selecting role:', e)
 		);
 	} else {
-		// For web mode, update config on server
-		fetch(`${CONFIG.ServerURL}/config/`, {
+		fetch(`${CONFIG.ServerURL}/config/selected_role`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify($configStore),
+			body: JSON.stringify({ selected_role: newRoleName }),
 		}).catch((error) => console.error('Error updating config on server:', error));
 	}
 }

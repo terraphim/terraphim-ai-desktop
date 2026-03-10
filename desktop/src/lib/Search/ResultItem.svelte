@@ -2,13 +2,11 @@
 import { invoke } from '@tauri-apps/api/tauri';
 import { Tag, Taglist } from 'svelma';
 import { fade } from 'svelte/transition';
-// @ts-expect-error
 import SvelteMarkdown from 'svelte-markdown';
 import { router } from 'tinro';
-import { is_tauri, role, configStore as roleConfigStore } from '$lib/stores';
+import { configStore, is_tauri, role } from '$lib/stores';
 import { CONFIG } from '../../config';
 import type { DocumentListResponse, Role } from '../generated/types';
-import configStore from '../ThemeSwitcher.svelte';
 import ArticleModal from './ArticleModal.svelte';
 import AtomicSaveModal from './AtomicSaveModal.svelte';
 import type { Document } from './SearchResult';
@@ -184,7 +182,7 @@ function generateMenuItems(): MenuItem[] {
 
 function checkAtomicServerAvailable(): boolean {
 	const currentRoleName = $role;
-	const config = $roleConfigStore;
+	const config = $configStore;
 
 	if (!config?.roles || !currentRoleName) {
 		return false;
@@ -249,10 +247,10 @@ async function _handleTagClick(tag: string) {
 			// Use Tauri command for desktop app
 			console.log('  Making Tauri invoke call...');
 			console.log('  Tauri command: find_documents_for_kg_term');
-			console.log('  Tauri params:', { roleName: $role, term: tag });
+			console.log('  Tauri params:', { role_name: $role, term: tag });
 
 			const response: DocumentListResponse = await invoke('find_documents_for_kg_term', {
-				roleName: $role,
+				role_name: $role,
 				term: tag,
 			});
 
@@ -377,7 +375,7 @@ async function _generateSummary() {
 
 		console.log('  📤 Summarization request:', requestBody);
 
-		let response: unknown;
+		let response: Response;
 
 		if ($is_tauri) {
 			// For Tauri mode, we'll make an HTTP request directly
@@ -959,14 +957,6 @@ async function addToContextAndChat() {
 	}
 }
 
-if (configStore[$role as keyof typeof configStore] !== undefined) {
-	console.log('Have attribute', configStore[$role as keyof typeof configStore]);
-	if (Object.hasOwn(configStore[$role as keyof typeof configStore], 'enableLogseq')) {
-		console.log('enable logseq True');
-	} else {
-		console.log("Didn't make it");
-	}
-}
 </script>
 
 <div class="box">
@@ -995,11 +985,11 @@ if (configStore[$role as keyof typeof configStore] !== undefined) {
           </Taglist>
         </div>
         <div transition:fade>
-          <button on:click={onTitleClick}>
-            <h2 class="title">
-              {item.title}
-            </h2>
-          </button>
+	          <button on:click={onTitleClick} data-testid="search-result-title">
+	            <h2 class="title">
+	              {item.title}
+	            </h2>
+	          </button>
           <div class="description">
             <small class="description-label">Description:</small>
             <div class="description-content">

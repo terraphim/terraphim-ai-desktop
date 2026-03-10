@@ -13,8 +13,8 @@ test.describe('CLI Logical Operators Integration', () => {
 			const searchResult = await page.evaluate(async () => {
 				const { invoke } = window.__TAURI__.tauri;
 
-				return await invoke('search_documents', {
-					query: {
+				return await invoke('search', {
+					searchQuery: {
 						search_term: 'rust',
 						search_terms: ['rust', 'async'],
 						operator: 'and',
@@ -47,8 +47,8 @@ test.describe('CLI Logical Operators Integration', () => {
 			const searchResult = await page.evaluate(async () => {
 				const { invoke } = window.__TAURI__.tauri;
 
-				return await invoke('search_documents', {
-					query: {
+				return await invoke('search', {
+					searchQuery: {
 						search_term: 'api',
 						search_terms: ['api', 'sdk'],
 						operator: 'or',
@@ -80,8 +80,8 @@ test.describe('CLI Logical Operators Integration', () => {
 			const searchResult = await page.evaluate(async () => {
 				const { invoke } = window.__TAURI__.tauri;
 
-				return await invoke('search_documents', {
-					query: {
+				return await invoke('search', {
+					searchQuery: {
 						search_term: 'rust',
 						search_terms: null,
 						operator: null,
@@ -112,8 +112,8 @@ test.describe('CLI Logical Operators Integration', () => {
 				const searchResult = await page.evaluate(async (testRole) => {
 					const { invoke } = window.__TAURI__.tauri;
 
-					return await invoke('search_documents', {
-						query: {
+					return await invoke('search', {
+						searchQuery: {
 							search_term: 'system',
 							search_terms: ['system', 'operation'],
 							operator: 'and',
@@ -143,11 +143,11 @@ test.describe('CLI Logical Operators Integration', () => {
 			});
 
 			expect(config).toBeDefined();
-			expect(config).toHaveProperty('roles');
-			expect(typeof config.roles).toBe('object');
+			expect(config).toHaveProperty('config.roles');
+			expect(typeof config.config.roles).toBe('object');
 
 			// Should have at least one role configured
-			const roleNames = Object.keys(config.roles);
+			const roleNames = Object.keys(config.config.roles);
 			expect(roleNames.length).toBeGreaterThan(0);
 		});
 
@@ -158,18 +158,18 @@ test.describe('CLI Logical Operators Integration', () => {
 				return await invoke('get_config');
 			});
 
-			const availableRoles = Object.keys(config.roles);
+			const availableRoles = Object.keys(config.config.roles);
 			expect(availableRoles.length).toBeGreaterThan(0);
 
 			// Update to first available role
 			const targetRole = availableRoles[0];
 			const updatedConfig = await page.evaluate(async (role) => {
 				const { invoke } = window.__TAURI__.tauri;
-				return await invoke('update_selected_role', { roleName: role });
+				return await invoke('select_role', { roleName: role });
 			}, targetRole);
 
 			expect(updatedConfig).toBeDefined();
-			expect(updatedConfig.selected_role).toBe(targetRole);
+			expect(updatedConfig.config.selected_role).toBe(targetRole);
 		});
 	});
 
@@ -178,9 +178,9 @@ test.describe('CLI Logical Operators Integration', () => {
 			const suggestions = await page.evaluate(async () => {
 				const { invoke } = window.__TAURI__.tauri;
 
-				return await invoke('autocomplete', {
+				return await invoke('get_autocomplete_suggestions', {
 					query: 'rust',
-					role: 'Engineer',
+					role_name: 'Engineer',
 					limit: 10,
 				});
 			});
@@ -203,9 +203,9 @@ test.describe('CLI Logical Operators Integration', () => {
 				const suggestions = await page.evaluate(async (testRole) => {
 					const { invoke } = window.__TAURI__.tauri;
 
-					return await invoke('autocomplete', {
+					return await invoke('get_autocomplete_suggestions', {
 						query: 'sys',
-						role: testRole,
+						role_name: testRole,
 						limit: 5,
 					});
 				}, role);
@@ -246,7 +246,7 @@ test.describe('CLI Logical Operators Integration', () => {
 				try {
 					const result = await page.evaluate(async (testQuery) => {
 						const { invoke } = window.__TAURI__.tauri;
-						return await invoke('search_documents', { query: testQuery });
+						return await invoke('search', { searchQuery: testQuery });
 					}, query);
 
 					// Should return empty results or handle gracefully

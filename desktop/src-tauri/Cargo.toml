@@ -37,7 +37,7 @@ terraphim_types = { git = "https://github.com/terraphim/terraphim-ai.git", branc
 terraphim_persistence = { git = "https://github.com/terraphim/terraphim-ai.git", branch = "main" }
 terraphim_service = { git = "https://github.com/terraphim/terraphim-ai.git", branch = "main" }
 terraphim_mcp_server = { git = "https://github.com/terraphim/terraphim-ai.git", branch = "main" }
-rmcp = { version = "0.9.0", features = ["server"] }
+rmcp = { version = "0.9.0", features = ["server", "client", "transport-child-process"] }
 serde_json_any_key = "2.0.0"
 anyhow = "1.0.81"
 log = "0.4.29"

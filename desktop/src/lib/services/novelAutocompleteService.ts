@@ -123,7 +123,7 @@ export class NovelAutocompleteService {
 				console.log('Using Tauri autocomplete - testing connection');
 				const testResponse = (await invoke('get_autocomplete_suggestions', {
 					query: 'test',
-					roleName: this.currentRole,
+					role_name: this.currentRole,
 					limit: 1,
 				})) as any;
 
@@ -270,7 +270,7 @@ export class NovelAutocompleteService {
 	): Promise<NovelAutocompleteSuggestion[]> {
 		const response = (await invoke('get_autocomplete_suggestions', {
 			query: query.trim(),
-			roleName: this.currentRole,
+			role_name: this.currentRole,
 			limit: limit,
 		})) as any;
 

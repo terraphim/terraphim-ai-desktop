@@ -56,9 +56,9 @@ function loadSearchState() {
 }
 
 function saveSearchState() {
+	const data = { input: $input, results };
 	try {
 		if (typeof window === 'undefined') return;
-		const data = { input: $input, results };
 		localStorage.setItem(searchStateKey(), JSON.stringify(data));
 	} catch (e) {
 		// Handle quota exceeded error
@@ -123,12 +123,11 @@ function startSummarizationStreaming() {
 	if ($is_tauri) {
 		// For Tauri, use polling instead of SSE
 		startPollingForSummaries();
-		return;
+	} else {
+		// Web mode has no SSE endpoint and cannot use Tauri polling.
+		// Leave summarization static until the server exposes a supported stream/poll API.
+		stopPollingForSummaries();
 	}
-
-	// SSE endpoint not implemented on server, use polling instead
-	// The /summarization/stream endpoint doesn't exist, so we fall back to polling
-	startPollingForSummaries();
 	return;
 
 	// Legacy SSE code (disabled - endpoint not implemented)

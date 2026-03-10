@@ -57,7 +57,7 @@ export const TerraphimSuggestion = Extension.create<TerraphimSuggestionOptions>(
 
 	addOptions() {
 		return {
-			trigger: '++',
+			trigger: '@',
 			pluginKey: new PluginKey('terraphimSuggestion'),
 			allowSpaces: false,
 			limit: 8,
@@ -77,8 +77,7 @@ export const TerraphimSuggestion = Extension.create<TerraphimSuggestionOptions>(
 	},
 
 	addProseMirrorPlugins() {
-		const suggestion: Partial<SuggestionOptions> = {
-			editor: this.editor,
+		const suggestion: Omit<SuggestionOptions<NovelAutocompleteSuggestion>, 'editor'> = {
 			char: this.options.trigger,
 			pluginKey: this.options.pluginKey,
 			allowSpaces: this.options.allowSpaces,
@@ -170,7 +169,7 @@ export const TerraphimSuggestion = Extension.create<TerraphimSuggestionOptions>(
 			},
 		};
 
-		return [Suggestion(suggestion)];
+		return [Suggestion<NovelAutocompleteSuggestion>({ editor: this.editor, ...suggestion })];
 	},
 });
 

@@ -28,6 +28,7 @@ let searchTimeout = $state<ReturnType<typeof setTimeout> | null>(null);
 // Autocomplete state (matches Search.svelte pattern)
 let autocompleteSuggestions = $state<string[]>([]);
 let suggestionIndex = $state(-1);
+let _autocompleteError = $state<string | null>(null);
 
 // Input element reference for focus management
 let searchInput = $state<HTMLInputElement>();
@@ -97,17 +98,22 @@ function handleQueryChange() {
 // Get KG term suggestions (autocomplete) - matches Search.svelte pattern
 async function getTermSuggestions(q: string): Promise<string[]> {
 	const trimmed = q.trim();
-	if (!trimmed || trimmed.length < 2) return [];
+	if (!trimmed || trimmed.length < 2) {
+		_autocompleteError = null;
+		return [];
+	}
 	try {
 		if ($isTauriStore) {
 			const resp: any = await invoke('get_autocomplete_suggestions', {
 				query: trimmed,
-				roleName: $roleStore,
+				role_name: $roleStore,
 				limit: 8,
 			});
 			if (resp?.status === 'success' && Array.isArray(resp.suggestions)) {
+				_autocompleteError = null;
 				return resp.suggestions.map((s: any) => s.term);
 			}
+			_autocompleteError = resp?.error || 'KG autocomplete unavailable';
 		} else {
 			const resp = await fetch(
 				`${CONFIG.ServerURL}/autocomplete/${encodeURIComponent($roleStore)}/${encodeURIComponent(trimmed)}`
@@ -115,12 +121,17 @@ async function getTermSuggestions(q: string): Promise<string[]> {
 			if (resp.ok) {
 				const data = await resp.json();
 				if (data?.status === 'success' && Array.isArray(data.suggestions)) {
+					_autocompleteError = null;
 					return data.suggestions.map((s: any) => s.term);
 				}
+				_autocompleteError = data?.error || 'KG autocomplete unavailable';
+			} else {
+				_autocompleteError = `Autocomplete failed: HTTP ${resp.status}`;
 			}
 		}
 	} catch (e) {
 		console.warn('KG autocomplete failed', e);
+		_autocompleteError = `KG autocomplete failed: ${e}`;
 	}
 	return [];
 }
@@ -131,6 +142,7 @@ async function updateAutocompleteSuggestions() {
 	if (inputValue.length < 2) {
 		autocompleteSuggestions = [];
 		suggestionIndex = -1;
+		_autocompleteError = null;
 		return;
 	}
 
@@ -142,6 +154,7 @@ async function updateAutocompleteSuggestions() {
 		console.warn('Failed to get autocomplete suggestions:', error);
 		autocompleteSuggestions = [];
 		suggestionIndex = -1;
+		_autocompleteError = 'Failed to load suggestions';
 	}
 }
 
@@ -150,6 +163,7 @@ function applySuggestion(suggestion: string) {
 	query = suggestion;
 	autocompleteSuggestions = [];
 	suggestionIndex = -1;
+	_autocompleteError = null;
 
 	// Trigger search for the selected term
 	if (query.trim().length >= 2) {
@@ -181,6 +195,7 @@ function _handleKeydown(event: KeyboardEvent) {
 			event.preventDefault();
 			autocompleteSuggestions = [];
 			suggestionIndex = -1;
+			_autocompleteError = null;
 		}
 	} else if (event.key === 'Enter') {
 		event.preventDefault();
@@ -514,6 +529,16 @@ const addKGIndexToContext = _addKGIndexToContext;
     background-color: #f5f5f5;
   }
 
+  .autocomplete-error {
+    margin-top: 0.25rem;
+    font-size: 0.75rem;
+    color: #dc3545;
+    padding: 0.25rem 0.5rem;
+    background-color: #f8d7da;
+    border-radius: 3px;
+    border: 1px solid #f5c6cb;
+  }
+
   .suggestion-item {
     padding: 1rem;
     border-bottom: 1px solid #f0f0f0;
@@ -768,10 +793,15 @@ const addKGIndexToContext = _addKGIndexToContext;
                   </li>
                 {/each}
               </ul>
-            {/if}
-          </div>
-        </Field>
-      </div>
+			{/if}
+			{#if _autocompleteError}
+			  <div class="autocomplete-error" data-testid="kg-autocomplete-error">
+				{_autocompleteError}
+			  </div>
+			{/if}
+		  </div>
+		</Field>
+	  </div>
 
       {#if _searchError}
         <Message type="is-danger" data-testid="kg-search-error">

@@ -444,10 +444,10 @@ async function showKGDocumentsForTerm(term: string) {
 			// Use Tauri command for desktop app
 			console.log('  Making Tauri invoke call...');
 			console.log('  Tauri command: find_documents_for_kg_term');
-			console.log('  Tauri params:', { roleName: $role, term: term });
+			console.log('  Tauri params:', { role_name: $role, term: term });
 
 			const response: any = await invoke('find_documents_for_kg_term', {
-				roleName: $role,
+				role_name: $role,
 				term: term,
 			});
 

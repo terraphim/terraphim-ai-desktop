@@ -1,16 +1,9 @@
 import { writable } from 'svelte/store';
 import { CONFIG } from '../config';
-// Import generated types instead of manual definitions
+import { detectTauriRuntime } from './runtime';
 import type { Config, Role, RoleName } from './generated/types';
 
-// Custom interface for thesaurus (not in generated types)
-interface NormalisedThesaurus {
-	id: string;
-	term: string;
-}
-
-// writable key value store for thesaurus, where value is id and normalised term
-const thesaurus = writable<Array<Record<string, NormalisedThesaurus>>>([]);
+const thesaurus = writable<Record<string, string>>({});
 
 // Default empty configuration - updated to match generated Config type
 const defaultConfig: Config = {
@@ -23,7 +16,7 @@ const defaultConfig: Config = {
 
 const theme = writable<string>('spacelab');
 const role = writable<string>('selected'); // Updated to be empty by default, set upon config load
-const is_tauri = writable<boolean>(false);
+const is_tauri = writable<boolean>(detectTauriRuntime());
 const _atomic_configured = writable<boolean>(false);
 const serverUrl = writable<string>(`${CONFIG.ServerURL}/documents/search`);
 const configStore = writable<Config>(defaultConfig); // Store the whole config object
