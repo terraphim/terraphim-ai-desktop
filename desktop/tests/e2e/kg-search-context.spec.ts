@@ -41,9 +41,17 @@ test.describe('KG Search E2E - Working Features', () => {
 
 		console.log('✅ KG autocomplete working');
 
-		// Wait for search results and click first result
+		// Press Enter to trigger search (instead of waiting for click handler)
+		await kgInput.press('Enter');
+
+		// Wait for search results to appear using result container
+		await page.waitForSelector('.search-results, [data-testid="search-result-title"]', {
+			timeout: 5000,
+		});
+
+		// Click first result title
 		const firstResultTitle = page.locator('[data-testid="search-result-title"]').first();
-		await expect(firstResultTitle).toBeVisible({ timeout: 5000 });
+		await expect(firstResultTitle).toBeVisible();
 		await firstResultTitle.click();
 
 		// Verify article modal opens
