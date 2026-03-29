@@ -182,7 +182,7 @@ jobs:
         run: bun install
 
       - name: Download artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: bindings-${{ matrix.settings.target }}
           path: terraphim_ai_nodejs
@@ -305,13 +305,13 @@ jobs:
         run: bun install
 
       - name: Download macOS x64 artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: bindings-x86_64-apple-darwin
           path: ${{ github.workspace }}/artifacts
 
       - name: Download macOS arm64 artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: bindings-aarch64-apple-darwin
           path: ${{ github.workspace }}/artifacts
@@ -371,7 +371,7 @@ jobs:
           echo "Registry: https://npm.pkg.github.com"
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: ${{ github.workspace }}/artifacts
 

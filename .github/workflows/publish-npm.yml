@@ -193,7 +193,7 @@ jobs:
           bun-version: latest
 
       - name: Download artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: bindings-${{ matrix.settings.target }}
           path: terraphim_ai_nodejs
@@ -245,7 +245,7 @@ jobs:
           bun-version: latest
 
       - name: Download universal binary
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: bindings-universal-apple-darwin
           path: terraphim_ai_nodejs
@@ -289,13 +289,13 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: Download macOS x64 artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: bindings-x86_64-apple-darwin
           path: terraphim_ai_nodejs/artifacts
 
       - name: Download macOS arm64 artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: bindings-aarch64-apple-darwin
           path: terraphim_ai_nodejs/artifacts
@@ -338,7 +338,7 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: artifacts
 
